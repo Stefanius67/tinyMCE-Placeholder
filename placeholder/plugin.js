@@ -7,7 +7,7 @@
 
 tinymce.PluginManager.add('placeholder', function(editor, url){
     // first step is to register all of our 'own' options
-    // 1. the placeholder list needed in any case!
+    // 1. the placeholder list
     const placeholdersOptionProcessor = function(value) {
         // @todo: check the array elements:
         // - string (value only)
@@ -69,6 +69,13 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
 		processor: placeholderTypeOptionProcessor,
 		default: 'double_square_braces',
 	});
+    
+    // the type is needed to add the regexp for noneditable content
+    const placeholderType = placeholderTypes[editor.options.get('placeholder_type')];
+    
+	var noneditableRegExp = editor.options.get('noneditable_regexp');
+	noneditableRegExp.push(placeholderType.noneditableRegExp);
+
     // 3. the style to display the readonly placeholders
     //    - default is darkblue text on yellow background
 	editor.options.register('placeholder_style', {
@@ -76,25 +83,27 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
 		default: '{ color: darkblue; background-color: yellow;}',
 	});
     
-    // the type is needed to add the regexp for noneditable content
-    const placeholderType = placeholderTypes[editor.options.get('placeholder_type')];
-    
-	var noneditable_regexp = editor.options.get('noneditable_regexp');
-	noneditable_regexp.push(placeholderType.noneditableRegExp);
-
     // since we use the 'noneditable' function of tinyMCE we can set the
     // CSS class '.mceNonEditable' to change the display of the placeholders...
-    var placeholder_style = editor.options.get('placeholder_style');
-    if (placeholder_style != '') {
+    var placeholderStyle = editor.options.get('placeholder_style');
+    if (placeholderStyle != '') {
         var content_style = editor.options.get('content_style');
         if (typeof content_style == 'undefined') {
             content_style = '';
         }
-        content_style += '.mceNonEditable ' + placeholder_style
+        content_style += '.mceNonEditable ' + placeholderStyle
         editor.options.set('content_style', content_style);
     }
+    
+    // 4. Check, if it is allowed to edit existing placeholders
+    //    - default is true
+	editor.options.register('placeholder_can_edit', {
+		processor: 'boolean',
+		default: true,
+	});
+    var placeholderCanEdit = editor.options.get('placeholder_can_edit');
 
-    // .. and no process the passed placeholder list
+    // .. and now process the passed placeholder list
 	var placeholderItems = editor.options.get('placeholders');
 	var placeholderMenu = [];
 	
@@ -131,15 +140,16 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
         });
     }
 	
-	editor.on('dblclick', () => {
-		const strSelection = editor.selection.getContent();
-		const matches = strSelection.match(placeholderType.selectedRegExp);
-		if (matches !== null) {
-			console.log('Placeholder: ' + matches[0] + ' dbl-clicked');
-			editPlaceholder(matches[1]);
-		}
-	});
-	
+    if (placeholderCanEdit) {
+        editor.on('dblclick', () => {
+            const strSelection = editor.selection.getContent();
+            const matches = strSelection.match(placeholderType.selectedRegExp);
+            if (matches !== null) {
+                console.log('Placeholder: ' + matches[0] + ' dbl-clicked');
+                editPlaceholder(matches[1]);
+            }
+        });
+	}
 	const editPlaceholder = function(strPlaceholder) {
 		editor.windowManager.open({
 			title: 'Edit placeholder value',
@@ -173,6 +183,6 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
 });
 
 /**
- * so far only the german translation is available
+ * at first step only the german translation is available
  */
 tinymce.PluginManager.requireLangPack('placeholder', 'de');

@@ -64,6 +64,7 @@ tinymce.init({
   external_plugins: {
     'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
   }
+  ...
 });
 ```
 
@@ -86,6 +87,7 @@ subfolder of the `plugins` directory of your ***tinyMCE*** installation.
 tinymce.init({
   selector: 'your_editor',
   plugins: 'plugin1 ... pluginN placeholder',
+  ...
 });
 ```
 
@@ -97,6 +99,13 @@ For details see:
 https://www.tiny.cloud/docs/tinymce/6/editor-important-options/#plugins
 
 ## Configuration
+
+| Option                 | Type    | Description |
+|------------------------|---------|-------------|
+| `placeholders`         | array   | [Defining the available placeholder list](#defining-the-available-placeholder-list) |
+| `placeholder_type`     | string  | [Choose the start- and end- tag](#choose-the-start--and-end--tag) |
+| `placeholder_style`    | string  | [Specify the style to display the placeholders](#specify-the-style-to-display-the-placeholders-within-the-edit-area) |
+| `placeholder_can_edit` | boolean | [Enable/disable the placeholder edit dialog](#enabledisable-the-placeholder-edit-dialog) |
 
 ### Defining the available placeholder list
 
@@ -128,6 +137,7 @@ tinymce.init({
       value: 'gallery:XX'
     }
   ],
+  ...
 });
 
 // 'short' version
@@ -137,12 +147,41 @@ tinymce.init({
     'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
   }
   placeholders: ['age-group:XX', 'season', 'gallery:XX']
+  ...
 });
 ```
 
 ### Add the selectlist to the toolbar
 
+To add the selectmenu to the toolbar, the 'placeholder' keyword can be placed at any 
+position within the toolbar definition.
+
+```JS
+tinymce.init({
+  selector: 'your_editor',
+  external_plugins: {
+    'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
+  }
+  toolbar: 'btn1 btn2 ... btnN | placeholder',
+  ...
+});
+```
+
 ### Choose the start- and end- tag
+
+To select the desired type of the start- and end tag, set the `placeholder_type` option.
+The default type is 'double_square_braces'.
+
+```JS
+tinymce.init({
+  selector: 'your_editor',
+  external_plugins: {
+    'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
+  }
+  placeholder_type: 'double_curly_braces',
+  ...
+});
+```
 
 | Available types              | example           |
 |------------------------------|-------------------|
@@ -155,6 +194,54 @@ tinymce.init({
 
 ### Specify the style to display the placeholders within the edit area
 
+To keep placeholders readonly and display them in a differnt style, the ***tinyMCE***
+build-in functionality `noneditable_regexp` is used and so we just have to change the 
+CSS style for the '.mceNonEditable' class.  
+
+By using the `placeholder_style` - option, this style can be changed. The default 
+style is dark blue text on yellow background. To suppress the default style, pass
+an empty string to this option!
+
+> Be aware that setting this style may also affect other readonly areas defined using 
+> the `noneditable_regexp` functionality
+
+```JS
+tinymce.init({
+  selector: 'your_editor',
+  external_plugins: {
+    'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
+  }
+  placeholder_style: '{ color: cyan; background-color: darkblue;}',
+  ...
+});
+```
+
 ### Enable/disable the placeholder edit dialog
 
+It can be set whether the user can edit existing placeholders in a dialog or not. To 
+do this, the `placeholder_can_edit` option must be set to false. This option is 
+activated by default.
+
+```JS
+tinymce.init({
+  selector: 'your_editor',
+  external_plugins: {
+    'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
+  }
+  placeholder_can_edit: false,
+  ...
+});
+```
+
 ## Localization
+
+Currently only the german translation for the plugin is available. Following steps are
+needed to create additional localizations:
+1. Copy the file `de.js` in the langs folder, rename it to the language you want
+   to add and make your translations.
+2. Add the new language in the `plugin.js` at the last line of the plugin
+   ```JS
+   // add your language at this point, below e.g. fr for french translation
+   tinymce.PluginManager.requireLangPack('placeholder', 'de, fr');
+   ```
+3. Recreate the minimized `plugin.min.js` version (e.g. using [JCompress](https://jscompress.com/))
