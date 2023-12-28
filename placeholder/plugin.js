@@ -145,7 +145,7 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
             const strSelection = editor.selection.getContent();
             const matches = strSelection.match(placeholderType.selectedRegExp);
             if (matches !== null) {
-                console.log('Placeholder: ' + matches[0] + ' dbl-clicked');
+                // console.log('Placeholder: ' + matches[0] + ' dbl-clicked');
                 editPlaceholder(matches[1]);
             }
         });
