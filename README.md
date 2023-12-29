@@ -244,4 +244,16 @@ needed to create additional localizations:
    // add your language at this point, below e.g. fr for french translation
    tinymce.PluginManager.requireLangPack('placeholder', 'de, fr');
    ```
-3. Recreate the minimized `plugin.min.js` version (e.g. using [JCompress](https://jscompress.com/))
+3. Recreate the minified `plugin.min.js` version 
+
+> **Note:**  
+> It would be great if you would add your created translation file(s) to the repository 
+> via pull request to make them available to other users :-)
+
+### JS minification
+
+[Minify-JS](https://minify-js.com/)
+: Uses 'Terser 5'
+
+[JCompress](https://jscompress.com/)
+: Uses 'UglifyJS 3' and 'babel-minify' (doesn't support ES6)
