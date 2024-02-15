@@ -1,6 +1,6 @@
 # tinyMCE-Placeholder
 
- ![Latest Stable Version](https://img.shields.io/badge/release-v0.9.0-brightgreen.svg)
+ ![Latest Stable Version](https://img.shields.io/badge/release-v1.0.0-brightgreen.svg)
  ![License](https://img.shields.io/badge/license-GPLv3-blue) 
  [![Donate](https://img.shields.io/static/v1?label=donate&message=PayPal&color=orange)](https://www.paypal.me/SKientzler/5.00EUR)
 
@@ -10,11 +10,14 @@
   - [Usage as internal plugin](#usage-as-internal-plugin)
 - [Configuration](#configuration)
   - [Defining the available placeholder list](#defining-the-available-placeholder-list)
+    - [Static definition in the JS](#static-definition-in-the-js)
+	- [Set a URL where the plugin fetches the placeholder list at runtime](#set-a-url-where-the-plugin-fetches-the-placeholder-list-at-runtime)
   - [Add the selectlist to the toolbar](#add-the-selectlist-to-the-toolbar)
   - [Choose the start- and end- tag](#choose-the-start--and-end--tag)
   - [Specify the style to display the placeholders](#specify-the-style-to-display-the-placeholders-within-the-edit-area)
   - [Enable/disable the placeholder edit dialog](#enabledisable-the-placeholder-edit-dialog)
 - [Localization](#localization)
+- [JS minification](#js-minification)
 
 ---
 ## Description
@@ -109,6 +112,8 @@ https://www.tiny.cloud/docs/tinymce/6/editor-important-options/#plugins
 
 ### Defining the available placeholder list
 
+#### Static definition in the JS
+
 To specify the available placeholders, the option `placeholders` have to be set when
 initializing ***tinyMCE***.  
 
@@ -127,14 +132,14 @@ tinymce.init({
   }
   placeholders: [
     {
-      name:  'Age-group',
-      value: 'age-group:XX'
+      name:  'First Placeholder',
+      value: 'placeholder1'
     }, {
-      name:  'Season',
-      value: 'season'
+      name:  'Second Placeholder',
+      value: 'placeholder2'
     }, {
-      name:  'Gallery',
-      value: 'gallery:XX'
+      name:  'Third Placeholder',
+      value: 'placeholder3'
     }
   ],
   ...
@@ -146,9 +151,70 @@ tinymce.init({
   external_plugins: {
     'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
   }
-  placeholders: ['age-group:XX', 'season', 'gallery:XX']
+  placeholders: ['placeholder1', 'placeholder2', 'placeholder3']
   ...
 });
+```
+
+#### Set a URL where the plugin fetches the placeholder list at runtime
+
+Instead of a hardcoded placeholder list in the JS code, a URL where the list will 
+be fetched at runtime can be set:
+
+```JS
+tinymce.init({
+  selector: 'your_editor',
+  external_plugins: {
+    'placeholder': 'http://www.yourdomain.com/yourplugins/placeholder/plugin.min.js',
+  }
+  placeholders: 'ajax/placeholders.php',
+  ...
+});
+
+```
+
+The response of this URL must be a JSON object that conforms to the following format:
+
+```JS
+// 'long' version
+[
+	{
+		"text":  "First Placeholder",
+		"value": "placeholder1"
+	},
+	{
+		"text":  "Second Placeholder",
+		"value": "placeholder2"
+	},
+	{
+		"text":  "Third Placeholder",
+		"value": "placeholder3"
+	}
+]
+
+// 'short' version
+["placeholder1", "placeholder2", "placeholder3"]
+```
+
+A verry simplified example, how to implement the requesthandler in PHP:
+
+```PHP
+<?php
+// define available placeholders
+$placeholders = [[
+        "text"  => "First Placeholder",
+        "value" => "placeholder1"
+    ], [
+        "text"  => "Second Placeholder",
+        "value" => "placeholder2"
+    ], [
+        "text"  => "Third Placeholder",
+        "value" => "placeholder3"
+    ],
+];
+
+header('Content-Type: application/json');
+echo json_encode($placeholders);
 ```
 
 ### Add the selectlist to the toolbar
@@ -251,7 +317,7 @@ needed to create additional localizations:
 > via pull request to make them available to other users... or just email me any new 
 > translation file(s) :-)
 
-### JS minification
+## JS minification
 
 [Terser 5](https://github.com/terser/terser)
 : A JavaScript mangler/compressor toolkit for ES6+. Needs latest version of 

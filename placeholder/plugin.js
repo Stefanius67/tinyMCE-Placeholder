@@ -12,12 +12,12 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
         // @todo: check the array elements:
         // - string (value only)
         // - object containing value [required] and text [optional] property
-        return Array.isArray(value);
+        return Array.isArray(value) || typeof value === 'string';
     };
-	editor.options.register('placeholders', {
-		processor: placeholdersOptionProcessor,
-		default: [],
-	});
+    editor.options.register('placeholders', {
+        processor: placeholdersOptionProcessor,
+        default: [],
+    });
     // 2. the placeholder type (open/close tag)
     //    - default value is 'double square braces'
     const placeholderTypes = {
@@ -42,7 +42,7 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
         double_square_braces: {       // [[placeholder]]  (default)
             openTag:    '[[',
             closeTag:   ']]',
-            noneditableRegExp: /\[\[[^\]]*\]\]/g,       	       // use braces to hide the open/close tag: /\[\[([^\]]*)\]\]/g,
+            noneditableRegExp: /\[\[[^\]]*\]\]/g,                  // use braces to hide the open/close tag: /\[\[([^\]]*)\]\]/g,
             selectedRegExp:    /^\[\[([^\]]*)\]\]$/,
         },
         curly_brace_exclamation: {    // {!placeholder!}
@@ -65,23 +65,23 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
         }
         return true;
     };
-	editor.options.register('placeholder_type', {
-		processor: placeholderTypeOptionProcessor,
-		default: 'double_square_braces',
-	});
+    editor.options.register('placeholder_type', {
+        processor: placeholderTypeOptionProcessor,
+        default: 'double_square_braces',
+    });
     
     // the type is needed to add the regexp for noneditable content
     const placeholderType = placeholderTypes[editor.options.get('placeholder_type')];
     
-	var noneditableRegExp = editor.options.get('noneditable_regexp');
-	noneditableRegExp.push(placeholderType.noneditableRegExp);
+    var noneditableRegExp = editor.options.get('noneditable_regexp');
+    noneditableRegExp.push(placeholderType.noneditableRegExp);
 
     // 3. the style to display the readonly placeholders
     //    - default is darkblue text on yellow background
-	editor.options.register('placeholder_style', {
-		processor: 'string',
-		default: '{ color: darkblue; background-color: yellow;}',
-	});
+    editor.options.register('placeholder_style', {
+        processor: 'string',
+        default: '{ color: darkblue; background-color: yellow;}',
+    });
     
     // since we use the 'noneditable' function of tinyMCE we can set the
     // CSS class '.mceNonEditable' to change the display of the placeholders...
@@ -97,49 +97,12 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
     
     // 4. Check, if it is allowed to edit existing placeholders
     //    - default is true
-	editor.options.register('placeholder_can_edit', {
-		processor: 'boolean',
-		default: true,
-	});
+    editor.options.register('placeholder_can_edit', {
+        processor: 'boolean',
+        default: true,
+    });
     var placeholderCanEdit = editor.options.get('placeholder_can_edit');
 
-    // .. and now process the passed placeholder list
-	var placeholderItems = editor.options.get('placeholders');
-	var placeholderMenu = [];
-	
-	for (var i in placeholderItems) {
-		if ('object' === typeof placeholderItems[i] && placeholderItems[i].value) {
-            // assign to a const in this block scope - otherwise, the onAction - handler 
-            // will use the last value from the for - loop!
-            const value = placeholderType.openTag + placeholderItems[i].value + placeholderType.closeTag;
-			placeholderMenu.push({
-				type:		'menuitem',
-				text:		placeholderItems[i].text || placeholderItems[i].value,
-				onAction:	() => { 
-                    editor.insertContent(value.slice(0));
-                },
-			});
-		} else if('string' === typeof placeholderItems[i]) {
-			// assign to a const in this block scope - otherwise, the onAction - handler 
-			// will use the last value from the for - loop!
-			const value = placeholderType.openTag + placeholderItems[i] + placeholderType.closeTag;
-			placeholderMenu.push({
-				type:		'menuitem',
-				text:		placeholderItems[i],
-				onAction:	() => { 
-                    editor.insertContent(value.slice(0));
-                },
-			});
-		}
-	}
-	
-    if (placeholderMenu.length > 0) {
-        editor.ui.registry.addMenuButton('placeholder', {
-            text: 'Placeholders',
-            fetch: (callback) => { callback(placeholderMenu); },
-        });
-    }
-	
     if (placeholderCanEdit) {
         editor.on('dblclick', () => {
             const strSelection = editor.selection.getContent();
@@ -149,37 +112,92 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
                 editPlaceholder(matches[1]);
             }
         });
-	}
-	const editPlaceholder = function(strPlaceholder) {
-		editor.windowManager.open({
-			title: 'Edit placeholder value',
-			body: {
-				type: 'panel',
-				items: [{
-					type: 'input',
-					name: 'placeholder',
-					label: 'Current value',
-					placeholder: 'test',
-				}]
-			},
-			buttons: [{
-				type: 'cancel',
-				text: 'Close',
-			},{
-				type: 'submit',
-				text: 'Save',
-				buttonType: 'primary',
-			}],
-			initialData: {
-				placeholder: strPlaceholder,
-			},			
-			onSubmit: (api) => {
-				const data = api.getData();
-				editor.insertContent(placeholderType.openTag + data.placeholder + placeholderType.closeTag);
-				api.close();
-			},
-		});	
-	};
+    }
+    
+    // and finally build the list
+    // - directly called, if the placeholder list is passed as option
+    // - called inside the promise, if a URL to fetch the placeholder list is passed
+    const buildPlaceholderSelect = function(placeholderItems) { 
+        var placeholderMenu = [];
+        
+        for (var i in placeholderItems) {
+            if ('object' === typeof placeholderItems[i] && placeholderItems[i].value) {
+                // assign to a const in this block scope - otherwise, the onAction - handler 
+                // will use the last value from the for - loop!
+                const value = placeholderType.openTag + placeholderItems[i].value + placeholderType.closeTag;
+                placeholderMenu.push({
+                    type:       'menuitem',
+                    text:       placeholderItems[i].text || placeholderItems[i].value,
+                    onAction:   () => { 
+                        editor.insertContent(value.slice(0));
+                    },
+                });
+            } else if('string' === typeof placeholderItems[i]) {
+                // assign to a const in this block scope - otherwise, the onAction - handler 
+                // will use the last value from the for - loop!
+                const value = placeholderType.openTag + placeholderItems[i] + placeholderType.closeTag;
+                placeholderMenu.push({
+                    type:       'menuitem',
+                    text:       placeholderItems[i],
+                    onAction:   () => { 
+                        editor.insertContent(value.slice(0));
+                    },
+                });
+            }
+        }
+        
+        if (placeholderMenu.length > 0) {
+            editor.ui.registry.addMenuButton('placeholder', {
+                text: 'Placeholders',
+                fetch: (callback) => { callback(placeholderMenu); },
+            });
+        }
+    }
+    
+    const placeholders = editor.options.get('placeholders');
+    if (typeof placeholders === 'string') {
+        // The option as string MUST be a valid URL to fetch placeholders from 
+        fetch(placeholders).then(res => {
+            if (res.ok) {
+                res.json().then(buildPlaceholderSelect);
+            }
+        })
+    } else {
+        // ... otherwise the placeholder list have been directly passed
+        buildPlaceholderSelect(placeholders);
+    }
+    
+    // the handler to edit a placeholder brings up a simple dialog
+    const editPlaceholder = function(strPlaceholder) {
+        editor.windowManager.open({
+            title: 'Edit placeholder value',
+            body: {
+                type: 'panel',
+                items: [{
+                    type: 'input',
+                    name: 'placeholder',
+                    label: 'Current value',
+                    placeholder: 'test',
+                }]
+            },
+            buttons: [{
+                type: 'cancel',
+                text: 'Close',
+            },{
+                type: 'submit',
+                text: 'Save',
+                buttonType: 'primary',
+            }],
+            initialData: {
+                placeholder: strPlaceholder,
+            },          
+            onSubmit: (api) => {
+                const data = api.getData();
+                editor.insertContent(placeholderType.openTag + data.placeholder + placeholderType.closeTag);
+                api.close();
+            },
+        }); 
+    };
 });
 
 /**
