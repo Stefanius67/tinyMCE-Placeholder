@@ -1,6 +1,6 @@
 # tinyMCE-Placeholder
 
- ![Latest Stable Version](https://img.shields.io/badge/release-v1.0.0-brightgreen.svg)
+ ![Latest Stable Version](https://img.shields.io/badge/release-v1.0.1-brightgreen.svg)
  ![License](https://img.shields.io/badge/license-GPLv3-blue) 
  [![Donate](https://img.shields.io/static/v1?label=donate&message=PayPal&color=orange)](https://www.paypal.me/SKientzler/5.00EUR)
 

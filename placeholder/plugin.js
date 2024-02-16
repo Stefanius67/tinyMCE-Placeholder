@@ -203,4 +203,4 @@ tinymce.PluginManager.add('placeholder', function(editor, url){
 /**
  * at first step only the german translation is available
  */
-tinymce.PluginManager.requireLangPack('placeholder', 'de');
+tinymce.PluginManager.requireLangPack('placeholder', 'de, vi');
